@@ -1812,6 +1812,10 @@ boolean WaitingforReconnectDome = false;
 boolean mainControllerConnected = false;
 boolean domeControllerConnected = false;
 
+boolean blockFootMotors = false;
+int l2DomeDirection = 0;
+
+
 // Dome Automation Variables
 boolean domeAutomation = false;
 int domeTurnDirection = 1;  // 1 = positive turn, -1 negative turn
@@ -1947,7 +1951,7 @@ boolean ps3FootMotorDrive(PS3BT* myPS3 = PS3NavFoot)
           
           return false;
 
-      } else if (!myPS3->PS3NavigationConnected)
+      } else if (!myPS3->PS3NavigationConnected || blockFootMotors)
       {
         
           if (!isFootMotorStopped)
@@ -1964,7 +1968,7 @@ boolean ps3FootMotorDrive(PS3BT* myPS3 = PS3NavFoot)
           return false;
 
           
-      } else if (myPS3->getButtonPress(L2) || myPS3->getButtonPress(L1))
+      } else if (myPS3->getButtonPress(L1))
       {
         
           if (!isFootMotorStopped)
@@ -2254,20 +2258,28 @@ void domeDrive()
     
   } else if (PS3NavFoot->PS3NavigationConnected && PS3NavFoot->getButtonPress(L2))
   {
-    
-     ps3NavControlSpeed = ps3DomeDrive(PS3NavFoot);
+    if (isFootMotorStopped) {
+       ps3NavControlSpeed = ps3DomeDrive(PS3NavFoot);
+  
+       domeRotationSpeed = ps3NavControlSpeed; 
+  
+       rotateDome(domeRotationSpeed,"Controller Move");
+       blockFootMotors = true;
+    } else {
+      ps3NavControlSpeed = PS3NavFoot->getAnalogButton(L2);
+      domeRotationSpeed = (map(ps3NavControlSpeed, 0, 255, 0, domespeed)) * (l2DomeDirection - 1);
 
-     domeRotationSpeed = ps3NavControlSpeed; 
-
-     rotateDome(domeRotationSpeed,"Controller Move");
-    
+      rotateDome(domeRotationSpeed,"Controller Move");
+    }
   } else
   {
      if (!isDomeMotorStopped)
      {
          SyR->stop();
          isDomeMotorStopped = true;
+         l2DomeDirection = !l2DomeDirection;
      }
+     blockFootMotors = false;
   }  
 }  
 
