@@ -2267,7 +2267,8 @@ void domeDrive()
        blockFootMotors = true;
     } else {
       ps3NavControlSpeed = PS3NavFoot->getAnalogButton(L2);
-      domeRotationSpeed = (map(ps3NavControlSpeed, 0, 255, 0, domespeed)) * (l2DomeDirection - 1);
+      domeRotationSpeed = (map(ps3NavControlSpeed, 0, 255, 0, domespeed));
+      if (!l2DomeDirection) domeRotationSpeed = -domeRotationSpeed;
 
       rotateDome(domeRotationSpeed,"Controller Move");
     }
